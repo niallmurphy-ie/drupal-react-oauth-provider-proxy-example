@@ -1,0 +1,8 @@
+POST http://localhost:789/oauth
+Content-Type: application/json
+
+{
+	"username": "user1",
+	"password": "123456"
+}
+
