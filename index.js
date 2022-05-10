@@ -1,30 +1,40 @@
 // Express app that runs on port 789 and listens to a json endpoint "/oauth"
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 const axios = require('axios');
 
 const app = express();
 // Parse body
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(cors());
 
 app.use('/oauth', async (req, res) => {
-	const { username, password } = req.body;
+	// get username and password from body
+	const { username, password, refresh_token } = req.body;
+
+	if (!username && !password && !refresh_token) {
+		res.status(400).send('Missing username, password or refresh token');
+		return;
+	}
 
 	// These could be environmental variables and there could be multiple endpoints.
 	const client_id = '5e6c8415-9a1f-4d8b-9249-72b9dc6f7494';
 	const client_secret = 'client_secret_simple_oauth';
-	const grant_type = 'password';
 	const scope = 'consumer';
 
 	const formData = new URLSearchParams();
-	formData.append('grant_type', grant_type);
 	formData.append('client_id', client_id);
 	formData.append('client_secret', client_secret);
 	formData.append('scope', scope);
-	formData.append('username', username);
-	formData.append('password', password);
+
+	if (username && password) {
+		formData.append('grant_type', 'password');
+		formData.append('username', username);
+		formData.append('password', password);
+	} else if (refresh_token) {
+		formData.append('grant_type', 'refresh_token');
+		formData.append('refresh_token', refresh_token);
+	}
 
 	try {
 		const response = await axios.post(
